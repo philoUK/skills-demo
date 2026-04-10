@@ -11,8 +11,12 @@
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": false,
       "protocol": "openid-connect",
-      "redirectUris": ["*"],
-      "webOrigins": ["*"],
+      "redirectUris": [
+        "*"
+      ],
+      "webOrigins": [
+        "*"
+      ],
       "attributes": {
         "pkce.code.challenge.method": "S256"
       },
@@ -28,6 +32,20 @@
         "phone",
         "offline_access",
         "microprofile-jwt"
+      ],
+      "protocolMappers": [
+        {
+          "id": "22265fea-2598-4e22-8988-56b9050fb676",
+          "name": "audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "adminweb",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        }
       ]
     }
   ],
@@ -45,7 +63,7 @@
     {
       "username": "builtinadmin",
       "enabled": true,
-      "requiredActions": ["UPDATE_PASSWORD"],
+      "requiredActions": [],
       "credentials": [
         {
           "id": "a2223b99-9c86-4364-85fc-7c1cffe1c37a",
@@ -55,7 +73,13 @@
           "credentialData": "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
         }
       ],
-      "realmRoles": ["administrator"]
+      "realmRoles": [
+        "administrator"
+      ],
+      "firstName": "Phil",
+      "lastName": "Bennett",
+      "email": "pbennett@neworbit.co.uk",
+      "emailVerified": true
     }
   ]
 }
