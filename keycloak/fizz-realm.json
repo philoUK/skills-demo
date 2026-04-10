@@ -13,7 +13,6 @@
       "protocol": "openid-connect",
       "redirectUris": ["*"],
       "webOrigins": ["*"],
-      "postLogoutRedirectUris": ["+"],
       "attributes": {
         "pkce.code.challenge.method": "S256"
       },
