@@ -14,7 +14,11 @@ namespace AdminModule;
 
 public static class AdminModuleExtensions
 {
-    public static IServiceCollection AddAdminModule(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
+    public static IServiceCollection AddAdminModule(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IWebHostEnvironment environment
+    )
     {
         services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -28,10 +32,13 @@ public static class AdminModuleExtensions
                 {
                     OnAuthenticationFailed = ctx =>
                     {
-                        var logger = ctx.HttpContext.RequestServices
-                            .GetRequiredService<ILoggerFactory>()
+                        var logger = ctx
+                            .HttpContext.RequestServices.GetRequiredService<ILoggerFactory>()
                             .CreateLogger("AdminModule.Auth");
-                        logger.LogWarning("JWT authentication failed: {Error}", ctx.Exception.Message);
+                        logger.LogWarning(
+                            "JWT authentication failed: {Error}",
+                            ctx.Exception.Message
+                        );
                         return Task.CompletedTask;
                     },
                     OnTokenValidated = ctx =>
@@ -41,7 +48,8 @@ public static class AdminModuleExtensions
                             var realmAccess = ctx.Principal.FindFirst("realm_access");
                             if (realmAccess is not null)
                             {
-                                var roles = JsonDocument.Parse(realmAccess.Value)
+                                var roles = JsonDocument
+                                    .Parse(realmAccess.Value)
                                     .RootElement.GetProperty("roles");
                                 foreach (var role in roles.EnumerateArray())
                                 {
@@ -52,7 +60,7 @@ public static class AdminModuleExtensions
                             }
                         }
                         return Task.CompletedTask;
-                    }
+                    },
                 };
             });
 
