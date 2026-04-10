@@ -8,7 +8,7 @@ builder.AddServiceDefaults();
 builder.Services.AddOpenApi();
 builder.Services.AddValidation();
 builder.Services.AddProblemDetails();
-builder.Services.AddAdminModule(builder.Configuration);
+builder.Services.AddAdminModule(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
 

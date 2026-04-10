@@ -3,25 +3,37 @@ using System.Text.Json;
 using AdminModule.Admin.Ping;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace AdminModule;
 
 public static class AdminModuleExtensions
 {
-    public static IServiceCollection AddAdminModule(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddAdminModule(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
     {
         services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
-                options.Authority = configuration["Keycloak__Authority"];
-                options.Audience = configuration["Keycloak__Audience"];
+                options.Authority = configuration["Keycloak:Authority"];
+                options.Audience = configuration["Keycloak:Audience"];
+                options.RequireHttpsMetadata = !environment.IsDevelopment();
                 options.MapInboundClaims = false;
                 options.Events = new JwtBearerEvents
                 {
+                    OnAuthenticationFailed = ctx =>
+                    {
+                        var logger = ctx.HttpContext.RequestServices
+                            .GetRequiredService<ILoggerFactory>()
+                            .CreateLogger("AdminModule.Auth");
+                        logger.LogWarning("JWT authentication failed: {Error}", ctx.Exception.Message);
+                        return Task.CompletedTask;
+                    },
                     OnTokenValidated = ctx =>
                     {
                         if (ctx.Principal?.Identity is ClaimsIdentity identity)
