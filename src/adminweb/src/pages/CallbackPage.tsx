@@ -1,5 +1,16 @@
-// react-oidc-context processes the OIDC callback automatically via the AuthProvider.
-// onSigninCallback in auth-config.ts redirects to / after sign-in completes.
+import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from 'react-oidc-context'
+
 export function CallbackPage() {
+  const auth = useAuth()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (!auth.isLoading) {
+      navigate('/', { replace: true })
+    }
+  }, [auth.isLoading, navigate])
+
   return null
 }

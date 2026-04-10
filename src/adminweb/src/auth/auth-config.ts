@@ -7,7 +7,4 @@ export const oidcConfig: AuthProviderProps = {
   authority: `${keycloakUrl}/realms/${keycloakRealm}`,
   client_id: 'adminweb',
   redirect_uri: `${window.location.origin}/callback`,
-  onSigninCallback: () => {
-    window.history.replaceState({}, document.title, '/')
-  },
 }
