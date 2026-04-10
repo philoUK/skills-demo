@@ -1,0 +1,61 @@
+{
+  "realm": "fizz",
+  "enabled": true,
+  "sslRequired": "none",
+  "clients": [
+    {
+      "clientId": "adminweb",
+      "name": "Admin Web",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "protocol": "openid-connect",
+      "redirectUris": ["*"],
+      "webOrigins": ["*"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "roles",
+        "profile",
+        "email"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access",
+        "microprofile-jwt"
+      ]
+    }
+  ],
+  "roles": {
+    "realm": [
+      {
+        "name": "administrator",
+        "description": "Full access to the admin application",
+        "composite": false,
+        "clientRole": false
+      }
+    ]
+  },
+  "users": [
+    {
+      "username": "builtinadmin",
+      "enabled": true,
+      "requiredActions": ["UPDATE_PASSWORD"],
+      "credentials": [
+        {
+          "id": "a2223b99-9c86-4364-85fc-7c1cffe1c37a",
+          "type": "password",
+          "createdDate": 1744329600000,
+          "secretData": "{\"value\":\"TA5TvOHuJNrpfpCGV07V8epaareTBsPYHNquNoMmUaU=\",\"salt\":\"vb1Okpp6oPThwjEfBgHBQw==\",\"additionalParameters\":{}}",
+          "credentialData": "{\"hashIterations\":27500,\"algorithm\":\"pbkdf2-sha256\",\"additionalParameters\":{}}"
+        }
+      ],
+      "realmRoles": ["administrator"]
+    }
+  ]
+}
