@@ -20,6 +20,17 @@ public static class AdminModuleExtensions
         IWebHostEnvironment environment
     )
     {
+        SetUpAuthentication(services, configuration, environment);
+
+        return services;
+    }
+
+    private static void SetUpAuthentication(
+        IServiceCollection services,
+        IConfiguration configuration,
+        IWebHostEnvironment environment
+    )
+    {
         services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
@@ -65,8 +76,6 @@ public static class AdminModuleExtensions
             });
 
         services.AddAuthorization();
-
-        return services;
     }
 
     public static IEndpointRouteBuilder MapAdminEndpoints(this IEndpointRouteBuilder app)
