@@ -31,3 +31,27 @@ export async function listAdministrators(
 
   return response.json()
 }
+
+export async function deactivateAdministrator(token: string, id: string): Promise<void> {
+  const response = await fetch(`${apiUrl}/admin/administrators/${id}/deactivate`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '')
+    throw new Error(body || `Failed to deactivate administrator: ${response.status}`)
+  }
+}
+
+export async function reactivateAdministrator(token: string, id: string): Promise<void> {
+  const response = await fetch(`${apiUrl}/admin/administrators/${id}/reactivate`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '')
+    throw new Error(body || `Failed to reactivate administrator: ${response.status}`)
+  }
+}

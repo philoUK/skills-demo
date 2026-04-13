@@ -105,6 +105,12 @@ public static class AdminModuleExtensions
         app.MapGet("/admin/administrators", List.Handle)
             .RequireAuthorization(policy => policy.RequireRole("administrator"));
 
+        app.MapPost("/admin/administrators/{id}/deactivate", Deactivate.Handle)
+            .RequireAuthorization(policy => policy.RequireRole("administrator"));
+
+        app.MapPost("/admin/administrators/{id}/reactivate", Reactivate.Handle)
+            .RequireAuthorization(policy => policy.RequireRole("administrator"));
+
         return app;
     }
 }

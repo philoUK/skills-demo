@@ -1,7 +1,12 @@
 import { useReducer, useEffect, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 import { Link } from 'react-router-dom'
-import { listAdministrators, type Administrator } from '../api/administrators'
+import {
+  listAdministrators,
+  deactivateAdministrator,
+  reactivateAdministrator,
+  type Administrator,
+} from '../api/administrators'
 
 type State =
   | { status: 'idle' }
@@ -50,6 +55,10 @@ export function AdministratorsPage() {
   const auth = useAuth()
   const [search, setSearch] = useState('')
   const [state, dispatch] = useReducer(reduce, { status: 'idle' })
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [pendingAction, setPendingAction] = useState<string | null>(null)
+
+  const currentUserSub = auth.user?.profile?.sub as string | undefined
 
   useEffect(() => {
     const token = auth.user?.access_token
@@ -60,6 +69,45 @@ export function AdministratorsPage() {
       .then((r) => dispatch({ type: 'success', administrators: r.administrators }))
       .catch((e: Error) => dispatch({ type: 'error', message: e.message }))
   }, [search, auth.user?.access_token])
+
+  function reload() {
+    const token = auth.user?.access_token
+    if (!token) return
+    dispatch({ type: 'fetch' })
+    listAdministrators(token, search)
+      .then((r) => dispatch({ type: 'success', administrators: r.administrators }))
+      .catch((e: Error) => dispatch({ type: 'error', message: e.message }))
+  }
+
+  async function handleDeactivate(id: string) {
+    const token = auth.user?.access_token
+    if (!token) return
+    setActionError(null)
+    setPendingAction(id)
+    try {
+      await deactivateAdministrator(token, id)
+      reload()
+    } catch (e: unknown) {
+      setActionError(e instanceof Error ? e.message : 'Failed to deactivate administrator.')
+    } finally {
+      setPendingAction(null)
+    }
+  }
+
+  async function handleReactivate(id: string) {
+    const token = auth.user?.access_token
+    if (!token) return
+    setActionError(null)
+    setPendingAction(id)
+    try {
+      await reactivateAdministrator(token, id)
+      reload()
+    } catch (e: unknown) {
+      setActionError(e instanceof Error ? e.message : 'Failed to reactivate administrator.')
+    } finally {
+      setPendingAction(null)
+    }
+  }
 
   const administrators = state.status === 'success' ? state.administrators : []
 
@@ -95,6 +143,10 @@ export function AdministratorsPage() {
           <p className="text-red-500 mb-4">{state.message}</p>
         )}
 
+        {actionError && (
+          <p className="text-red-500 mb-4">{actionError}</p>
+        )}
+
         {state.status === 'loading' ? (
           <p className="text-gray-500">Loading...</p>
         ) : (
@@ -105,22 +157,48 @@ export function AdministratorsPage() {
                 <th className="text-left px-3 py-2.5 text-gray-700 font-medium">First Name</th>
                 <th className="text-left px-3 py-2.5 text-gray-700 font-medium">Last Name</th>
                 <th className="text-left px-3 py-2.5 text-gray-700 font-medium">Status</th>
+                <th className="text-left px-3 py-2.5 text-gray-700 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {administrators.map((a: Administrator) => (
-                <tr key={a.id} className="border-b border-gray-100">
-                  <td className="px-3 py-2.5">{a.email}</td>
-                  <td className="px-3 py-2.5">{a.firstName}</td>
-                  <td className="px-3 py-2.5">{a.lastName}</td>
-                  <td className="px-3 py-2.5">
-                    <StatusBadge status={a.status} />
-                  </td>
-                </tr>
-              ))}
+              {administrators.map((a: Administrator) => {
+                const isSelf = currentUserSub !== undefined && a.id === currentUserSub
+                const isPending = pendingAction === a.id
+                return (
+                  <tr key={a.id} className="border-b border-gray-100">
+                    <td className="px-3 py-2.5">{a.email}</td>
+                    <td className="px-3 py-2.5">{a.firstName}</td>
+                    <td className="px-3 py-2.5">{a.lastName}</td>
+                    <td className="px-3 py-2.5">
+                      <StatusBadge status={a.status} />
+                    </td>
+                    <td className="px-3 py-2.5">
+                      {a.status === 'active' && (
+                        <button
+                          onClick={() => handleDeactivate(a.id)}
+                          disabled={isPending || isSelf}
+                          title={isSelf ? 'You cannot deactivate your own account' : undefined}
+                          className="px-3 py-1 text-xs border border-red-300 text-red-600 rounded hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                        >
+                          {isPending ? 'Deactivating…' : 'Deactivate'}
+                        </button>
+                      )}
+                      {a.status === 'inactive' && (
+                        <button
+                          onClick={() => handleReactivate(a.id)}
+                          disabled={isPending}
+                          className="px-3 py-1 text-xs border border-green-300 text-green-600 rounded hover:bg-green-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                        >
+                          {isPending ? 'Reactivating…' : 'Reactivate'}
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
               {administrators.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-3 py-6 text-center text-gray-400">
+                  <td colSpan={5} className="px-3 py-6 text-center text-gray-400">
                     No administrators found
                   </td>
                 </tr>

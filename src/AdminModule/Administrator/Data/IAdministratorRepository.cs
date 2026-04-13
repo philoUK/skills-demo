@@ -8,4 +8,8 @@ internal interface IAdministratorRepository
         string? search,
         CancellationToken ct = default
     );
+
+    Task<DomainAdministrator?> GetByIdAsync(Guid id, CancellationToken ct = default);
+
+    Task UpdateAsync(DomainAdministrator administrator, CancellationToken ct = default);
 }
