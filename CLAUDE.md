@@ -37,6 +37,10 @@ Activity.Current?.SetTag("offer.eligible", false);
 
 - [Domain Model](./ddd.md)
 
+### Endpoint Design
+
+- [Endpoints](./endpoints.md)
+
 ### Persistence
 
 - [Persistence](./persistence.md)

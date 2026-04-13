@@ -31,4 +31,14 @@ internal class AccountEntity
 
 ### Location
 
-They belong in the same module as their domain counterparts but in a \data\<aggregate root name>\ structure similar to how we set up domain objects.
+They belong in the same module as their domain counterparts but in a \aggregate root name\data\ structure similar to how we set up domain objects. For example
+
+- Account
+  - Data
+    - AccountEntity.cs
+    - IAccountRepository.cs
+    - AccountRepository.cs
+
+### Db contexts
+
+As contexts will work with different aggregate roots they should live in a top level contexts folder in their respective module.

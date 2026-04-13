@@ -2,7 +2,14 @@
 
 ## Location
 
-The owning module should have a \domain folder and a subfolder for each aggregate root. If we have an aggregate root called "Account" it would be in the \domain\Account\ folder.
+The owning module should have a \aggregate root name\domain\ folder. For example of an Account type we would have
+
+- Account
+  - Domain
+    - Account.cs
+    - TransactionHistory.cs
+    - Transaction.cs
+    - ...
 
 ## Design
 
@@ -41,7 +48,7 @@ internal static class AccountExtensions
 
 ### Value types
 
-Group related data that changes together into immutable value types, rather than pollute the aggregate type with a large number of fields.
+Group related data that changes together into immutable value types, rather than pollute the aggregate type with a large number of fields. Value types should live in the same folder as their aggregate root owners.
 
 ```csharp
 internal record Modifications(DateTime ModifiedAt, string ModifiedBy);
