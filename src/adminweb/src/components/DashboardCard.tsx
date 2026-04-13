@@ -9,27 +9,11 @@ interface DashboardCardProps {
 
 export function DashboardCard({ icon, title, description, link }: DashboardCardProps) {
   return (
-    <Link
-      to={link}
-      style={{ textDecoration: 'none', color: 'inherit' }}
-    >
-      <div
-        style={{
-          border: '1px solid #d1d5db',
-          borderRadius: '8px',
-          padding: '24px',
-          cursor: 'pointer',
-          width: '240px',
-          transition: 'box-shadow 0.2s',
-        }}
-        onMouseEnter={(e) =>
-          (e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)')
-        }
-        onMouseLeave={(e) => (e.currentTarget.style.boxShadow = 'none')}
-      >
-        <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>{icon}</div>
-        <h3 style={{ margin: '0 0 8px', fontSize: '1.1rem' }}>{title}</h3>
-        <p style={{ margin: 0, color: '#6b7280', fontSize: '0.9rem' }}>{description}</p>
+    <Link to={link} className="no-underline text-inherit block w-60">
+      <div className="border border-gray-300 rounded-lg p-6 hover:shadow-md transition-shadow duration-200">
+        <div className="text-4xl mb-3">{icon}</div>
+        <h3 className="m-0 mb-2 text-lg font-semibold">{title}</h3>
+        <p className="text-gray-500 text-sm">{description}</p>
       </div>
     </Link>
   )

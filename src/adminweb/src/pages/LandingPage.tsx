@@ -5,28 +5,20 @@ export function LandingPage() {
   const auth = useAuth()
 
   return (
-    <div style={{ fontFamily: 'sans-serif' }}>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '16px 24px',
-          borderBottom: '1px solid #e5e7eb',
-        }}
-      >
-        <h1 style={{ margin: 0, fontSize: '1.5rem' }}>Admin Dashboard</h1>
+    <div>
+      <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+        <h1 className="m-0 text-2xl font-semibold">Admin Dashboard</h1>
         <button
           onClick={() => auth.signoutRedirect()}
-          style={{ padding: '8px 16px', cursor: 'pointer' }}
+          className="px-4 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 cursor-pointer"
         >
           Sign out
         </button>
       </div>
 
-      <div style={{ padding: '32px 24px' }}>
-        <h2 style={{ marginTop: 0, color: '#374151' }}>Overview</h2>
-        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+      <div className="px-6 py-8">
+        <h2 className="mt-0 mb-4 text-xl font-semibold text-gray-700">Overview</h2>
+        <div className="flex gap-4 flex-wrap">
           <DashboardCard
             icon="👥"
             title="Administrators"
