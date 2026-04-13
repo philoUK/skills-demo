@@ -1,7 +1,26 @@
-import { useState, useEffect } from 'react'
+import { useReducer, useEffect, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
 import { Link } from 'react-router-dom'
 import { listAdministrators, type Administrator } from '../api/administrators'
+
+type State =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'success'; administrators: Administrator[] }
+  | { status: 'error'; message: string }
+
+type Action =
+  | { type: 'fetch' }
+  | { type: 'success'; administrators: Administrator[] }
+  | { type: 'error'; message: string }
+
+function reduce(_: State, action: Action): State {
+  switch (action.type) {
+    case 'fetch':   return { status: 'loading' }
+    case 'success': return { status: 'success', administrators: action.administrators }
+    case 'error':   return { status: 'error', message: action.message }
+  }
+}
 
 const STATUS_LABELS: Record<string, string> = {
   active: 'Active',
@@ -29,22 +48,20 @@ function StatusBadge({ status }: { status: string }) {
 
 export function AdministratorsPage() {
   const auth = useAuth()
-  const [administrators, setAdministrators] = useState<Administrator[]>([])
   const [search, setSearch] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [state, dispatch] = useReducer(reduce, { status: 'idle' })
 
   useEffect(() => {
     const token = auth.user?.access_token
     if (!token) return
 
-    setLoading(true)
-    setError(null)
+    dispatch({ type: 'fetch' })
     listAdministrators(token, search)
-      .then((r) => setAdministrators(r.administrators))
-      .catch((e: Error) => setError(e.message))
-      .finally(() => setLoading(false))
+      .then((r) => dispatch({ type: 'success', administrators: r.administrators }))
+      .catch((e: Error) => dispatch({ type: 'error', message: e.message }))
   }, [search, auth.user?.access_token])
+
+  const administrators = state.status === 'success' ? state.administrators : []
 
   return (
     <div>
@@ -74,9 +91,11 @@ export function AdministratorsPage() {
           )}
         </div>
 
-        {error && <p className="text-red-500 mb-4">{error}</p>}
+        {state.status === 'error' && (
+          <p className="text-red-500 mb-4">{state.message}</p>
+        )}
 
-        {loading ? (
+        {state.status === 'loading' ? (
           <p className="text-gray-500">Loading...</p>
         ) : (
           <table className="w-full border-collapse text-sm">
@@ -89,7 +108,7 @@ export function AdministratorsPage() {
               </tr>
             </thead>
             <tbody>
-              {administrators.map((a) => (
+              {administrators.map((a: Administrator) => (
                 <tr key={a.id} className="border-b border-gray-100">
                   <td className="px-3 py-2.5">{a.email}</td>
                   <td className="px-3 py-2.5">{a.firstName}</td>
