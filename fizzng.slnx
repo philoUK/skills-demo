@@ -1,8 +1,12 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/AdminModule/AdminModule.csproj" />
+    <Project Path="src/AdminModule.Contracts/AdminModule.Contracts.csproj" />
     <Project Path="src/Api/Api.csproj" />
     <Project Path="src/AppHost/AppHost.csproj" />
     <Project Path="src/ServiceDefaults/ServiceDefaults.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AdminModule.IntegrationTests/AdminModule.IntegrationTests.csproj" />
   </Folder>
 </Solution>

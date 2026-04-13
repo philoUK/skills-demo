@@ -1,10 +1,13 @@
 using System.Security.Claims;
 using System.Text.Json;
 using AdminModule.Admin.Ping;
+using AdminModule.Administrator.Data;
+using AdminModule.Administrator.Endpoints;
+using AdminModule.Contexts;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -14,30 +17,46 @@ namespace AdminModule;
 
 public static class AdminModuleExtensions
 {
-    public static IServiceCollection AddAdminModule(
-        this IServiceCollection services,
-        IConfiguration configuration,
-        IWebHostEnvironment environment
-    )
+    public static IHostApplicationBuilder AddAdminModule(this IHostApplicationBuilder builder)
     {
-        SetUpAuthentication(services, configuration, environment);
+        SetUpAuthentication(builder);
+        SetUpCors(builder);
+        SetUpPersistence(builder);
 
-        return services;
+        return builder;
     }
 
-    private static void SetUpAuthentication(
-        IServiceCollection services,
-        IConfiguration configuration,
-        IWebHostEnvironment environment
-    )
+    private static void SetUpCors(IHostApplicationBuilder builder)
     {
-        services
-            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        builder.Services.AddCors(options =>
+        {
+            options.AddDefaultPolicy(policy =>
+            {
+                if (builder.Environment.IsDevelopment())
+                    policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+            });
+        });
+    }
+
+    private static void SetUpPersistence(IHostApplicationBuilder builder)
+    {
+        builder.Services.AddDbContext<AdminDbContext>(options =>
+            options.UseNpgsql(builder.Configuration.GetConnectionString("admindb"))
+        );
+
+        builder.Services.AddScoped<IAdministratorRepository, AdministratorRepository>();
+        builder.Services.AddHostedService<DatabaseMigrationService>();
+    }
+
+    private static void SetUpAuthentication(IHostApplicationBuilder builder)
+    {
+        builder
+            .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
-                options.Authority = configuration["Keycloak:Authority"];
-                options.Audience = configuration["Keycloak:Audience"];
-                options.RequireHttpsMetadata = !environment.IsDevelopment();
+                options.Authority = builder.Configuration["Keycloak:Authority"];
+                options.Audience = builder.Configuration["Keycloak:Audience"];
+                options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
                 options.MapInboundClaims = false;
                 options.Events = new JwtBearerEvents
                 {
@@ -75,12 +94,15 @@ public static class AdminModuleExtensions
                 };
             });
 
-        services.AddAuthorization();
+        builder.Services.AddAuthorization();
     }
 
     public static IEndpointRouteBuilder MapAdminEndpoints(this IEndpointRouteBuilder app)
     {
         app.MapGet("/admin/ping", PingEndpoint.Handle)
+            .RequireAuthorization(policy => policy.RequireRole("administrator"));
+
+        app.MapGet("/admin/administrators", List.Handle)
             .RequireAuthorization(policy => policy.RequireRole("administrator"));
 
         return app;

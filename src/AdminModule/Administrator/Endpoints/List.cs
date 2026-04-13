@@ -1,0 +1,38 @@
+using System.Diagnostics;
+using AdminModule.Administrator.Data;
+using AdminModule.Administrator.Domain;
+using AdminModule.Contracts.Administrator;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+
+namespace AdminModule.Administrator.Endpoints;
+
+internal static class List
+{
+    internal static async Task<Ok<ListAdministratorsResponse>> Handle(
+        [FromQuery] string? search,
+        IAdministratorRepository repository,
+        CancellationToken ct
+    )
+    {
+        var administrators = await repository.ListAsync(search, ct);
+
+        Activity.Current?.SetTag("administrator.count", administrators.Count);
+        Activity.Current?.SetTag("administrator.search_term", search ?? string.Empty);
+
+        var response = new ListAdministratorsResponse(
+            administrators
+                .Select(a => new AdministratorResponse(
+                    a.Id,
+                    a.Email,
+                    a.FirstName,
+                    a.LastName,
+                    AdministratorStatusFactory.ToStorageString(a.Status)
+                ))
+                .ToList()
+        );
+
+        return TypedResults.Ok(response);
+    }
+}

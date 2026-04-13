@@ -8,21 +8,26 @@ builder.AddServiceDefaults();
 builder.Services.AddOpenApi();
 builder.Services.AddValidation();
 builder.Services.AddProblemDetails();
-builder.Services.AddAdminModule(builder.Configuration, builder.Environment);
+builder.AddAdminModule();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
 }
 
-app.UseHttpsRedirection();
+app.UseCors();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapAdminEndpoints();
 
 app.Run();
+
+public partial class Program { }
