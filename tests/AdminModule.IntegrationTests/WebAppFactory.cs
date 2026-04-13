@@ -77,6 +77,15 @@ public class WebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
         seed(db);
         await db.SaveChangesAsync();
     }
+
+    internal async Task AssertAdministratorStatusAsync(Guid id, string expectedStatus)
+    {
+        using var scope = Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AdminDbContext>();
+        var entity = await db.Administrators.FindAsync(id);
+        Xunit.Assert.NotNull(entity);
+        Xunit.Assert.Equal(expectedStatus, entity.Status);
+    }
 }
 
 internal class TestDatabaseSetupService : IHostedService

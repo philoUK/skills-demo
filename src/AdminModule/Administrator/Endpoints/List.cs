@@ -5,12 +5,13 @@ using AdminModule.Contracts.Administrator;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using HttpOk = Microsoft.AspNetCore.Http.HttpResults.Ok<AdminModule.Contracts.Administrator.ListAdministratorsResponse>;
 
 namespace AdminModule.Administrator.Endpoints;
 
 internal static class List
 {
-    internal static async Task<Ok<ListAdministratorsResponse>> Handle(
+    internal static async Task<HttpOk> Handle(
         [FromQuery] string? search,
         IAdministratorRepository repository,
         CancellationToken ct

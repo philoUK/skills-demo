@@ -21,6 +21,7 @@ public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions
         {
             new Claim(ClaimTypes.Name, "test-admin"),
             new Claim(ClaimTypes.Role, "administrator"),
+            new Claim("sub", "test-admin-keycloak-id"),
         };
 
         var identity = new ClaimsIdentity(claims, "Test");
