@@ -4,6 +4,7 @@ using AdminModule.Admin.Ping;
 using AdminModule.Administrator.Data;
 using AdminModule.Administrator.Endpoints;
 using AdminModule.Contexts;
+using AdminModule.Email;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
@@ -45,6 +46,7 @@ public static class AdminModuleExtensions
         );
 
         builder.Services.AddScoped<IAdministratorRepository, AdministratorRepository>();
+        builder.Services.AddScoped<IEmailService, SmtpEmailService>();
         builder.Services.AddHostedService<DatabaseMigrationService>();
     }
 
@@ -109,6 +111,9 @@ public static class AdminModuleExtensions
             .RequireAuthorization(policy => policy.RequireRole("administrator"));
 
         app.MapPost("/admin/administrators/{id}/reactivate", Reactivate.Handle)
+            .RequireAuthorization(policy => policy.RequireRole("administrator"));
+
+        app.MapPost("/admin/administrators/invite", Invite.Handle)
             .RequireAuthorization(policy => policy.RequireRole("administrator"));
 
         return app;

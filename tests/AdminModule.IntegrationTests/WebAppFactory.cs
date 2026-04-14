@@ -1,4 +1,5 @@
 using AdminModule.Contexts;
+using AdminModule.Email;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -18,6 +19,8 @@ public class WebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
         .WithUsername("postgres")
         .WithPassword("postgres")
         .Build();
+
+    internal FakeEmailService EmailService { get; } = new();
 
     public async Task InitializeAsync()
     {
@@ -48,6 +51,10 @@ public class WebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
                 services.Remove(migrationDescriptor);
 
             services.AddHostedService<TestDatabaseSetupService>();
+
+            // Replace the real email service with the fake
+            services.RemoveAll<IEmailService>();
+            services.AddSingleton<IEmailService>(EmailService);
 
             // Override authentication to always grant administrator role
             services

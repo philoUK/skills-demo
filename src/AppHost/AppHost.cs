@@ -6,11 +6,16 @@ var keycloakHttp = keycloak.GetEndpoint("http");
 var postgres = builder.AddPostgres("postgres");
 var adminDb = postgres.AddDatabase("admindb");
 
+var mailpit = builder.AddMailPit("mailpit");
+
 var api = builder
     .AddProject<Projects.Api>("api")
     .WaitFor(keycloak)
     .WaitFor(postgres)
+    .WaitFor(mailpit)
     .WithReference(adminDb)
+    .WithEnvironment("Smtp__Host", mailpit.GetEndpoint("smtp").Property(EndpointProperty.Host))
+    .WithEnvironment("Smtp__Port", mailpit.GetEndpoint("smtp").Property(EndpointProperty.Port))
     .WithEnvironment(
         "Keycloak__Authority",
         ReferenceExpression.Create($"{keycloakHttp}/realms/fizz")

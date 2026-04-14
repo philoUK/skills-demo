@@ -33,6 +33,18 @@ internal class AdministratorRepository : IAdministratorRepository
         return entity?.ToDomain();
     }
 
+    public async Task<DomainAdministrator?> GetByEmailAsync(string email, CancellationToken ct = default)
+    {
+        var entity = await _db.Administrators.FirstOrDefaultAsync(a => a.Email == email, ct);
+        return entity?.ToDomain();
+    }
+
+    public async Task CreateAsync(DomainAdministrator administrator, CancellationToken ct = default)
+    {
+        _db.Administrators.Add(AdministratorEntity.FromDomain(administrator));
+        await _db.SaveChangesAsync(ct);
+    }
+
     public async Task UpdateAsync(DomainAdministrator administrator, CancellationToken ct = default)
     {
         var entity = await _db.Administrators.FindAsync([administrator.Id], ct);
