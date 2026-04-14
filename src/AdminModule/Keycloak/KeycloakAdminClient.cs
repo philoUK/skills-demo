@@ -31,11 +31,12 @@ internal class KeycloakAdminClient : IKeycloakAdminClient
     private async Task<string> GetAccessTokenAsync(CancellationToken ct)
     {
         var formData = new FormUrlEncodedContent(
-        [
-            new KeyValuePair<string, string>("grant_type", "client_credentials"),
-            new KeyValuePair<string, string>("client_id", _clientId),
-            new KeyValuePair<string, string>("client_secret", _clientSecret),
-        ]);
+            [
+                new KeyValuePair<string, string>("grant_type", "client_credentials"),
+                new KeyValuePair<string, string>("client_id", _clientId),
+                new KeyValuePair<string, string>("client_secret", _clientSecret),
+            ]
+        );
 
         var response = await _httpClient.PostAsync(_tokenEndpoint, formData, ct);
         response.EnsureSuccessStatusCode();
@@ -45,7 +46,12 @@ internal class KeycloakAdminClient : IKeycloakAdminClient
         return doc.RootElement.GetProperty("access_token").GetString()!;
     }
 
-    public async Task<string> CreateUserAsync(string email, string firstName, string lastName, CancellationToken ct)
+    public async Task<string> CreateUserAsync(
+        string email,
+        string firstName,
+        string lastName,
+        CancellationToken ct
+    )
     {
         var token = await GetAccessTokenAsync(ct);
 
@@ -62,7 +68,11 @@ internal class KeycloakAdminClient : IKeycloakAdminClient
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"{_adminBaseUrl}/users")
         {
-            Content = new StringContent(JsonSerializer.Serialize(user), Encoding.UTF8, "application/json"),
+            Content = new StringContent(
+                JsonSerializer.Serialize(user),
+                Encoding.UTF8,
+                "application/json"
+            ),
         };
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -77,7 +87,10 @@ internal class KeycloakAdminClient : IKeycloakAdminClient
     {
         var token = await GetAccessTokenAsync(ct);
 
-        var getRoleRequest = new HttpRequestMessage(HttpMethod.Get, $"{_adminBaseUrl}/roles/{roleName}");
+        var getRoleRequest = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"{_adminBaseUrl}/roles/{roleName}"
+        );
         getRoleRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var getRoleResponse = await _httpClient.SendAsync(getRoleRequest, ct);
         getRoleResponse.EnsureSuccessStatusCode();
@@ -92,7 +105,11 @@ internal class KeycloakAdminClient : IKeycloakAdminClient
             $"{_adminBaseUrl}/users/{userId}/role-mappings/realm"
         )
         {
-            Content = new StringContent(JsonSerializer.Serialize(roles), Encoding.UTF8, "application/json"),
+            Content = new StringContent(
+                JsonSerializer.Serialize(roles),
+                Encoding.UTF8,
+                "application/json"
+            ),
         };
         assignRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -100,7 +117,11 @@ internal class KeycloakAdminClient : IKeycloakAdminClient
         assignResponse.EnsureSuccessStatusCode();
     }
 
-    public async Task SendUpdatePasswordEmailAsync(string userId, string redirectUri, CancellationToken ct)
+    public async Task SendUpdatePasswordEmailAsync(
+        string userId,
+        string redirectUri,
+        CancellationToken ct
+    )
     {
         var token = await GetAccessTokenAsync(ct);
 
@@ -111,7 +132,11 @@ internal class KeycloakAdminClient : IKeycloakAdminClient
 
         var request = new HttpRequestMessage(HttpMethod.Put, url)
         {
-            Content = new StringContent(JsonSerializer.Serialize(actions), Encoding.UTF8, "application/json"),
+            Content = new StringContent(
+                JsonSerializer.Serialize(actions),
+                Encoding.UTF8,
+                "application/json"
+            ),
         };
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 

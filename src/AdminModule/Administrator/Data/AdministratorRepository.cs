@@ -33,15 +33,24 @@ internal class AdministratorRepository : IAdministratorRepository
         return entity?.ToDomain();
     }
 
-    public async Task<DomainAdministrator?> GetByEmailAsync(string email, CancellationToken ct = default)
+    public async Task<DomainAdministrator?> GetByEmailAsync(
+        string email,
+        CancellationToken ct = default
+    )
     {
         var entity = await _db.Administrators.FirstOrDefaultAsync(a => a.Email == email, ct);
         return entity?.ToDomain();
     }
 
-    public async Task<DomainAdministrator?> GetByInvitationTokenAsync(string token, CancellationToken ct = default)
+    public async Task<DomainAdministrator?> GetByInvitationTokenAsync(
+        string token,
+        CancellationToken ct = default
+    )
     {
-        var entity = await _db.Administrators.FirstOrDefaultAsync(a => a.InvitationToken == token, ct);
+        var entity = await _db.Administrators.FirstOrDefaultAsync(
+            a => a.InvitationToken == token,
+            ct
+        );
         return entity?.ToDomain();
     }
 
@@ -54,7 +63,8 @@ internal class AdministratorRepository : IAdministratorRepository
     public async Task UpdateAsync(DomainAdministrator administrator, CancellationToken ct = default)
     {
         var entity = await _db.Administrators.FindAsync([administrator.Id], ct);
-        if (entity is null) return;
+        if (entity is null)
+            return;
 
         entity.Status = AdministratorStatusFactory.ToStorageString(administrator.Status);
         entity.KeycloakUserId = administrator.KeycloakUserId;

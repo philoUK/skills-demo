@@ -59,7 +59,11 @@ internal static class Register
         );
 
         await keycloakClient.AssignRealmRoleAsync(keycloakUserId, "administrator", ct);
-        await keycloakClient.SendUpdatePasswordEmailAsync(keycloakUserId, $"{frontendUrl}/callback", ct);
+        await keycloakClient.SendUpdatePasswordEmailAsync(
+            keycloakUserId,
+            $"{frontendUrl}/callback",
+            ct
+        );
 
         var activated = administrator.Register(keycloakUserId);
         await repository.UpdateAsync(activated, ct);

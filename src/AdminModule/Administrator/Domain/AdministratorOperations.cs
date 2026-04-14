@@ -24,7 +24,10 @@ internal static class AdministratorOperations
             )
             : new Error<Administrator>(["Administrator is not inactive."]);
 
-    internal static Administrator Register(this Administrator administrator, string keycloakUserId) =>
+    internal static Administrator Register(
+        this Administrator administrator,
+        string keycloakUserId
+    ) =>
         administrator with
         {
             Status = AdministratorStatusFactory.Active(),
