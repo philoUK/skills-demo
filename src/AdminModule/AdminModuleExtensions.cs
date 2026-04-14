@@ -5,6 +5,7 @@ using AdminModule.Administrator.Data;
 using AdminModule.Administrator.Endpoints;
 using AdminModule.Contexts;
 using AdminModule.Email;
+using AdminModule.Keycloak;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
@@ -48,6 +49,7 @@ public static class AdminModuleExtensions
         builder.Services.AddScoped<IAdministratorRepository, AdministratorRepository>();
         builder.Services.AddScoped<IEmailService, SmtpEmailService>();
         builder.Services.AddHostedService<DatabaseMigrationService>();
+        builder.Services.AddHttpClient<IKeycloakAdminClient, KeycloakAdminClient>();
     }
 
     private static void SetUpAuthentication(IHostApplicationBuilder builder)
@@ -115,6 +117,8 @@ public static class AdminModuleExtensions
 
         app.MapPost("/admin/administrators/invite", Invite.Handle)
             .RequireAuthorization(policy => policy.RequireRole("administrator"));
+
+        app.MapGet("/admin/register/{token}", Register.Handle);
 
         return app;
     }

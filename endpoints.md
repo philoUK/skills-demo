@@ -42,3 +42,7 @@ public record RegisterPersonResponse(
 ```
 
 Use data annotations liberally as we have turned on minimal API validation. That can catch many 400 errors before they ever hit the endpoint. Null checking in the endpoint handler should be considered a code smell, if it can be handled by the type validation. You should still verify through integration tests!
+
+## Responsibilities
+
+The endpoints are orchestrators only, if they are performing data manipulations against domain objects, that is a smell. The domain objects should do it themselves in an extension method. If they are sending emails for example, constructing the email is a smell that should be delegated to the email service.

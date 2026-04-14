@@ -2,7 +2,28 @@
   "realm": "fizz",
   "enabled": true,
   "sslRequired": "none",
+  "smtpServer": {
+    "host": "mailpit",
+    "port": "1025",
+    "from": "noreply@fizz.local",
+    "fromDisplayName": "Fizz",
+    "ssl": "false",
+    "starttls": "false",
+    "auth": "false"
+  },
   "clients": [
+    {
+      "clientId": "fizz-api",
+      "name": "Fizz API",
+      "enabled": true,
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "protocol": "openid-connect",
+      "secret": "fizz-api-secret",
+      "clientAuthenticatorType": "client-secret"
+    },
     {
       "clientId": "adminweb",
       "name": "Admin Web",
@@ -60,6 +81,18 @@
     ]
   },
   "users": [
+    {
+      "username": "service-account-fizz-api",
+      "enabled": true,
+      "serviceAccountClientId": "fizz-api",
+      "clientRoles": {
+        "realm-management": [
+          "manage-users",
+          "view-users",
+          "view-realm"
+        ]
+      }
+    },
     {
       "username": "builtinadmin",
       "enabled": true,
