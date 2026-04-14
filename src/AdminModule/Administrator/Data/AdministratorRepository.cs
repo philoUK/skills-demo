@@ -39,6 +39,12 @@ internal class AdministratorRepository : IAdministratorRepository
         return entity?.ToDomain();
     }
 
+    public async Task<DomainAdministrator?> GetByInvitationTokenAsync(string token, CancellationToken ct = default)
+    {
+        var entity = await _db.Administrators.FirstOrDefaultAsync(a => a.InvitationToken == token, ct);
+        return entity?.ToDomain();
+    }
+
     public async Task CreateAsync(DomainAdministrator administrator, CancellationToken ct = default)
     {
         _db.Administrators.Add(AdministratorEntity.FromDomain(administrator));

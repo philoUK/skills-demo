@@ -23,4 +23,21 @@ internal static class AdministratorOperations
                 }
             )
             : new Error<Administrator>(["Administrator is not inactive."]);
+
+    internal static Administrator Register(this Administrator administrator, string keycloakUserId) =>
+        administrator with
+        {
+            Status = AdministratorStatusFactory.Active(),
+            KeycloakUserId = keycloakUserId,
+            InvitationToken = null,
+            InvitationExpiresAt = null,
+            UpdatedAt = DateTime.UtcNow,
+        };
+
+    internal static Administrator ExpireRegistration(this Administrator administrator) =>
+        administrator with
+        {
+            Status = AdministratorStatusFactory.PendingExpired(),
+            UpdatedAt = DateTime.UtcNow,
+        };
 }
