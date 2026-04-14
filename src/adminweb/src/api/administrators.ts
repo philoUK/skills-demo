@@ -55,3 +55,28 @@ export async function reactivateAdministrator(token: string, id: string): Promis
     throw new Error(body || `Failed to reactivate administrator: ${response.status}`)
   }
 }
+
+export interface InviteAdministratorRequest {
+  firstName: string
+  lastName: string
+  email: string
+}
+
+export async function inviteAdministrator(
+  token: string,
+  request: InviteAdministratorRequest,
+): Promise<void> {
+  const response = await fetch(`${apiUrl}/admin/administrators/invite`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  })
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '')
+    throw new Error(body || `Failed to invite administrator: ${response.status}`)
+  }
+}

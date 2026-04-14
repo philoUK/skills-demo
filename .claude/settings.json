@@ -4,7 +4,10 @@
       "Bash(grep -E \"\\\\.\\(md|txt|yaml|yml\\)$\")",
       "Bash(gh issue:*)",
       "Bash(npm install:*)",
-      "Bash(python3 -c ':*)"
+      "Bash(python3 -c ':*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet test:*)",
+      "Bash(dotnet add:*)"
     ]
   }
 }

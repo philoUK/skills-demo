@@ -11,5 +11,9 @@ internal interface IAdministratorRepository
 
     Task<DomainAdministrator?> GetByIdAsync(Guid id, CancellationToken ct = default);
 
+    Task<DomainAdministrator?> GetByEmailAsync(string email, CancellationToken ct = default);
+
+    Task CreateAsync(DomainAdministrator administrator, CancellationToken ct = default);
+
     Task UpdateAsync(DomainAdministrator administrator, CancellationToken ct = default);
 }
