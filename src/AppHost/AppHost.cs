@@ -25,6 +25,7 @@ var api = builder
     .WithEnvironment("Keycloak__AdminClientSecret", "fizz-api-secret");
 
 var apiHttp = api.GetEndpoint("http");
+api.WithEnvironment("Api__BaseUrl", ReferenceExpression.Create($"{apiHttp}"));
 
 var adminweb = builder
     .AddNpmApp("adminweb", "../adminweb", "dev")

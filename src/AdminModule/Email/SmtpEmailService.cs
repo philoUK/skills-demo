@@ -9,6 +9,7 @@ internal class SmtpEmailService(IConfiguration configuration) : IEmailService
     private readonly int _port = int.TryParse(configuration["Smtp:Port"], out var port)
         ? port
         : 1025;
+    private readonly string _apiBaseUrl = configuration["Api:BaseUrl"] ?? "http://localhost:5000";
 
     public async Task SendAsync(
         string to,
@@ -27,7 +28,7 @@ internal class SmtpEmailService(IConfiguration configuration) : IEmailService
 
     public Task SendInvitationAsync(string email, string firstName, string token, CancellationToken ct = default)
     {
-        var registrationLink = $"/admin/register/{token}";
+        var registrationLink = $"{_apiBaseUrl}/admin/register/{token}";
         var subject = "You have been invited to Fizz";
         var body = $"""
             <p>Hi {firstName},</p>
