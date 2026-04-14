@@ -4,9 +4,7 @@ A B2C application where members access cashback offers and purchase gift card vo
 
 ## Architecture
 
-- **Modular monolith** using **vertical slices**. Each feature owns its own request, handler, and response. No cross-cutting service layers.
-- Orchestrated via **.NET Aspire** (`src/AppHost`).
-- Frontend SPAs: `adminweb` and `memberweb` (VITE + React + TypeScript).
+See [Architecture](./Architecture.md)
 
 ## Observability
 
