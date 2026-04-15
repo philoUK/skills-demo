@@ -23,7 +23,7 @@ internal class AdministratorEntity
             LastName,
             AdministratorStatusFactory.FromString(Status),
             KeycloakUserId,
-            InvitationToken,
+            InvitationToken is null ? null : new Domain.InvitationToken(InvitationToken),
             InvitationExpiresAt,
             CreatedAt,
             UpdatedAt
@@ -38,7 +38,7 @@ internal class AdministratorEntity
             LastName = a.LastName,
             Status = AdministratorStatusFactory.ToStorageString(a.Status),
             KeycloakUserId = a.KeycloakUserId,
-            InvitationToken = a.InvitationToken,
+            InvitationToken = a.InvitationToken?.Value,
             InvitationExpiresAt = a.InvitationExpiresAt,
             CreatedAt = a.CreatedAt,
             UpdatedAt = a.UpdatedAt,

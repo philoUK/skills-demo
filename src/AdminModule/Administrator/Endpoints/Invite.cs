@@ -40,7 +40,7 @@ internal static class Invite
         await emailService.SendInvitationAsync(
             request.Email,
             request.FirstName,
-            administrator.InvitationToken!,
+            administrator.InvitationToken!.Value,
             ct
         );
 

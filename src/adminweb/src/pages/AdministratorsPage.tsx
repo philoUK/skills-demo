@@ -6,6 +6,8 @@ import {
   deactivateAdministrator,
   reactivateAdministrator,
   inviteAdministrator,
+  resendInvitation,
+  cancelInvitation,
   type Administrator,
 } from '../api/administrators'
 
@@ -213,6 +215,36 @@ export function AdministratorsPage() {
     }
   }
 
+  async function handleResendInvitation(id: string) {
+    const token = auth.user?.access_token
+    if (!token) return
+    setActionError(null)
+    setPendingAction(id)
+    try {
+      await resendInvitation(token, id)
+      reload()
+    } catch (e: unknown) {
+      setActionError(e instanceof Error ? e.message : 'Failed to resend invitation.')
+    } finally {
+      setPendingAction(null)
+    }
+  }
+
+  async function handleCancelInvitation(id: string) {
+    const token = auth.user?.access_token
+    if (!token) return
+    setActionError(null)
+    setPendingAction(id)
+    try {
+      await cancelInvitation(token, id)
+      reload()
+    } catch (e: unknown) {
+      setActionError(e instanceof Error ? e.message : 'Failed to cancel invitation.')
+    } finally {
+      setPendingAction(null)
+    }
+  }
+
   function handleInviteSuccess() {
     setShowInviteModal(false)
     reload()
@@ -316,6 +348,24 @@ export function AdministratorsPage() {
                         >
                           {isPending ? 'Reactivating…' : 'Reactivate'}
                         </button>
+                      )}
+                      {(a.status === 'pending' || a.status === 'pending_expired') && (
+                        <span className="flex gap-2">
+                          <button
+                            onClick={() => handleResendInvitation(a.id)}
+                            disabled={isPending}
+                            className="px-3 py-1 text-xs border border-amber-300 text-amber-600 rounded hover:bg-amber-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                          >
+                            {isPending ? 'Resending…' : 'Resend'}
+                          </button>
+                          <button
+                            onClick={() => handleCancelInvitation(a.id)}
+                            disabled={isPending}
+                            className="px-3 py-1 text-xs border border-red-300 text-red-600 rounded hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                          >
+                            {isPending ? 'Cancelling…' : 'Cancel'}
+                          </button>
+                        </span>
                       )}
                     </td>
                   </tr>

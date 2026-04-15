@@ -43,4 +43,20 @@ internal static class AdministratorOperations
             Status = AdministratorStatusFactory.PendingExpired(),
             UpdatedAt = DateTime.UtcNow,
         };
+
+    internal static Result<Administrator> ResendInvitation(this Administrator administrator)
+    {
+        if (administrator.Status is not (AdministratorPending or AdministratorPendingExpired))
+            return new Error<Administrator>(["Administrator invitation cannot be resent."]);
+
+        return new Ok<Administrator>(
+            administrator with
+            {
+                Status = AdministratorStatusFactory.Pending(),
+                InvitationToken = InvitationToken.Generate(),
+                InvitationExpiresAt = DateTime.UtcNow.AddHours(24),
+                UpdatedAt = DateTime.UtcNow,
+            }
+        );
+    }
 }
