@@ -2,6 +2,6 @@ namespace AdminModule.Email;
 
 internal sealed record SmtpOptions
 {
-    public string Host { get; init; } = "localhost";
-    public int Port { get; init; } = 1025;
+    public required string Host { get; init; }
+    public required int Port { get; init; }
 }
