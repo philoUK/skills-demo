@@ -105,18 +105,20 @@ public static class AdminModuleExtensions
                                 }
                             }
 
-                            var username = ctx.Principal.FindFirst("preferred_username")?.Value;
+                            var email =
+                                ctx.Principal.FindFirst("email")?.Value
+                                ?? ctx.Principal.FindFirst("preferred_username")?.Value;
 
-                            if (username is null)
+                            if (email is null)
                             {
-                                ctx.Fail("No preferred_username claim found in token.");
+                                ctx.Fail("No email claim found in token.");
                                 return;
                             }
 
                             var repository =
                                 ctx.HttpContext.RequestServices.GetRequiredService<IAdministratorRepository>();
                             var administrator = await repository.GetByEmailAsync(
-                                username,
+                                email,
                                 ctx.HttpContext.RequestAborted
                             );
 
