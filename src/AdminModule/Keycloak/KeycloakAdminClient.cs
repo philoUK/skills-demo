@@ -1,7 +1,7 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace AdminModule.Keycloak;
 
@@ -13,19 +13,19 @@ internal class KeycloakAdminClient : IKeycloakAdminClient
     private readonly string _clientId;
     private readonly string _clientSecret;
 
-    public KeycloakAdminClient(HttpClient httpClient, IConfiguration configuration)
+    public KeycloakAdminClient(HttpClient httpClient, IOptions<KeycloakOptions> options)
     {
         _httpClient = httpClient;
 
-        var authority = configuration["Keycloak:Authority"]!;
-        var parts = authority.Split("/realms/", 2);
+        var opts = options.Value;
+        var parts = opts.Authority.Split("/realms/", 2);
         var keycloakBase = parts[0];
         var realm = parts[1];
 
         _adminBaseUrl = $"{keycloakBase}/admin/realms/{realm}";
-        _tokenEndpoint = $"{authority}/protocol/openid-connect/token";
-        _clientId = configuration["Keycloak:AdminClientId"]!;
-        _clientSecret = configuration["Keycloak:AdminClientSecret"]!;
+        _tokenEndpoint = $"{opts.Authority}/protocol/openid-connect/token";
+        _clientId = opts.AdminClientId;
+        _clientSecret = opts.AdminClientSecret;
     }
 
     private async Task<string> GetAccessTokenAsync(CancellationToken ct)

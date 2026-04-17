@@ -3,7 +3,7 @@ using AdminModule.Administrator.Data;
 using AdminModule.Administrator.Domain;
 using AdminModule.Keycloak;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace AdminModule.Administrator.Endpoints;
 
@@ -13,11 +13,11 @@ internal static class Register
         string token,
         IAdministratorRepository repository,
         IKeycloakAdminClient keycloakClient,
-        IConfiguration configuration,
+        IOptions<FrontendOptions> frontendOptions,
         CancellationToken ct
     )
     {
-        var frontendUrl = configuration["Frontend:AdminUrl"] ?? "http://localhost:5174";
+        var frontendUrl = frontendOptions.Value.AdminUrl;
 
         var administrator = await repository.GetByInvitationTokenAsync(token, ct);
         if (administrator is null)

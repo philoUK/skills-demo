@@ -1,15 +1,13 @@
 using System.Net.Mail;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace AdminModule.Email;
 
-internal class SmtpEmailService(IConfiguration configuration) : IEmailService
+internal class SmtpEmailService(IOptions<SmtpOptions> smtpOptions, IOptions<ApiOptions> apiOptions) : IEmailService
 {
-    private readonly string _host = configuration["Smtp:Host"] ?? "localhost";
-    private readonly int _port = int.TryParse(configuration["Smtp:Port"], out var port)
-        ? port
-        : 1025;
-    private readonly string _apiBaseUrl = configuration["Api:BaseUrl"] ?? "http://localhost:5000";
+    private readonly string _host = smtpOptions.Value.Host;
+    private readonly int _port = smtpOptions.Value.Port;
+    private readonly string _apiBaseUrl = apiOptions.Value.BaseUrl;
 
     public async Task SendAsync(
         string to,

@@ -21,11 +21,20 @@ public static class AdminModuleExtensions
 {
     public static IHostApplicationBuilder AddAdminModule(this IHostApplicationBuilder builder)
     {
+        SetUpOptions(builder);
         SetUpAuthentication(builder);
         SetUpCors(builder);
         SetUpPersistence(builder);
 
         return builder;
+    }
+
+    private static void SetUpOptions(IHostApplicationBuilder builder)
+    {
+        builder.Services.Configure<KeycloakOptions>(builder.Configuration.GetSection("Keycloak"));
+        builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
+        builder.Services.Configure<ApiOptions>(builder.Configuration.GetSection("Api"));
+        builder.Services.Configure<FrontendOptions>(builder.Configuration.GetSection("Frontend"));
     }
 
     private static void SetUpCors(IHostApplicationBuilder builder)
@@ -54,12 +63,14 @@ public static class AdminModuleExtensions
 
     private static void SetUpAuthentication(IHostApplicationBuilder builder)
     {
+        var keycloak = builder.Configuration.GetSection("Keycloak").Get<KeycloakOptions>();
+
         builder
             .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
-                options.Authority = builder.Configuration["Keycloak:Authority"];
-                options.Audience = builder.Configuration["Keycloak:Audience"];
+                options.Authority = keycloak?.Authority;
+                options.Audience = keycloak?.Audience;
                 options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
                 options.MapInboundClaims = false;
                 options.Events = new JwtBearerEvents
