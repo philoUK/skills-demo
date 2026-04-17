@@ -105,19 +105,25 @@ public static class AdminModuleExtensions
                                 }
                             }
 
-                            var sub = ctx.Principal.FindFirst("sub")?.Value;
-                            if (sub is not null)
-                            {
-                                var repository = ctx.HttpContext.RequestServices
-                                    .GetRequiredService<IAdministratorRepository>();
-                                var administrator = await repository.GetByKeycloakUserIdAsync(
-                                    sub,
-                                    ctx.HttpContext.RequestAborted
-                                );
+                            var sub =
+                                ctx.Principal.FindFirst("sub")?.Value
+                                ?? ctx.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                                if (administrator is null || administrator.Status is not AdministratorActive)
-                                    ctx.Fail("Administrator is not active.");
+                            if (sub is null)
+                            {
+                                ctx.Fail("No user identifier claim found in token.");
+                                return;
                             }
+
+                            var repository =
+                                ctx.HttpContext.RequestServices.GetRequiredService<IAdministratorRepository>();
+                            var administrator = await repository.GetByKeycloakUserIdAsync(
+                                sub,
+                                ctx.HttpContext.RequestAborted
+                            );
+
+                            if (administrator is null || !administrator.IsActive())
+                                ctx.Fail("Administrator is not active.");
                         }
                     },
                 };

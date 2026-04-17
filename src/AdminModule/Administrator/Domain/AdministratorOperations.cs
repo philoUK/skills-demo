@@ -64,4 +64,7 @@ internal static class AdministratorOperations
 
     internal static bool HasBeenInvited(this Administrator administrator) =>
         administrator.Status is not (AdministratorActive or AdministratorInactive);
+
+    internal static bool IsActive(this Administrator administrator) =>
+        administrator.Status is AdministratorActive;
 }
