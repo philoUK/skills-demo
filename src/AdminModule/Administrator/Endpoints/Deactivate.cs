@@ -40,7 +40,10 @@ internal static class Deactivate
 
         if (result is Error<Domain.Administrator> error)
         {
-            Activity.Current?.SetTag("administrator.deactivate.error", string.Join(", ", error.Errors));
+            Activity.Current?.SetTag(
+                "administrator.deactivate.error",
+                string.Join(", ", error.Errors)
+            );
             return TypedResults.Conflict(string.Join(", ", error.Errors));
         }
 
