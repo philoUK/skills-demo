@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using AdminModule.Admin.Ping;
 using AdminModule.Administrator.Data;
+using AdminModule.Administrator.Domain;
 using AdminModule.Administrator.Endpoints;
 using AdminModule.Contexts;
 using AdminModule.Email;
@@ -86,7 +87,7 @@ public static class AdminModuleExtensions
                         );
                         return Task.CompletedTask;
                     },
-                    OnTokenValidated = ctx =>
+                    OnTokenValidated = async ctx =>
                     {
                         if (ctx.Principal?.Identity is ClaimsIdentity identity)
                         {
@@ -103,8 +104,21 @@ public static class AdminModuleExtensions
                                         identity.AddClaim(new Claim(ClaimTypes.Role, roleName));
                                 }
                             }
+
+                            var sub = ctx.Principal.FindFirst("sub")?.Value;
+                            if (sub is not null)
+                            {
+                                var repository = ctx.HttpContext.RequestServices
+                                    .GetRequiredService<IAdministratorRepository>();
+                                var administrator = await repository.GetByKeycloakUserIdAsync(
+                                    sub,
+                                    ctx.HttpContext.RequestAborted
+                                );
+
+                                if (administrator is null || administrator.Status is not AdministratorActive)
+                                    ctx.Fail("Administrator is not active.");
+                            }
                         }
-                        return Task.CompletedTask;
                     },
                 };
             });
