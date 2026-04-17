@@ -77,10 +77,30 @@ internal class KeycloakAdminClient : IKeycloakAdminClient
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var response = await _httpClient.SendAsync(request, ct);
+
+        if (response.StatusCode == System.Net.HttpStatusCode.Conflict)
+            return await GetUserIdByEmailAsync(email, token, ct);
+
         response.EnsureSuccessStatusCode();
 
         var location = response.Headers.Location!.ToString();
         return location.Split('/').Last();
+    }
+
+    private async Task<string> GetUserIdByEmailAsync(string email, string token, CancellationToken ct)
+    {
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"{_adminBaseUrl}/users?email={Uri.EscapeDataString(email)}&exact=true"
+        );
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await _httpClient.SendAsync(request, ct);
+        response.EnsureSuccessStatusCode();
+
+        var json = await response.Content.ReadAsStringAsync(ct);
+        var users = JsonDocument.Parse(json);
+        return users.RootElement.EnumerateArray().First().GetProperty("id").GetString()!;
     }
 
     public async Task AssignRealmRoleAsync(string userId, string roleName, CancellationToken ct)
