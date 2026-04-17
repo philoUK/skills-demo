@@ -91,6 +91,15 @@ public static class AdminModuleExtensions
                     {
                         if (ctx.Principal?.Identity is ClaimsIdentity identity)
                         {
+                            var logger = ctx.HttpContext.RequestServices
+                                .GetRequiredService<ILoggerFactory>()
+                                .CreateLogger("AdminModule.Auth");
+                            if (logger.IsEnabled(LogLevel.Debug))
+                                logger.LogDebug(
+                                    "Token claims: {Claims}",
+                                    string.Join(", ", ctx.Principal.Claims.Select(c => $"{c.Type}={c.Value}"))
+                                );
+
                             var realmAccess = ctx.Principal.FindFirst("realm_access");
                             if (realmAccess is not null)
                             {
