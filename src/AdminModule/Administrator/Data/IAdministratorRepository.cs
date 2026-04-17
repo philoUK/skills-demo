@@ -13,6 +13,11 @@ internal interface IAdministratorRepository
 
     Task<DomainAdministrator?> GetByEmailAsync(string email, CancellationToken ct = default);
 
+    Task<DomainAdministrator?> GetByKeycloakUserIdAsync(
+        string keycloakUserId,
+        CancellationToken ct = default
+    );
+
     Task<DomainAdministrator?> GetByInvitationTokenAsync(
         string token,
         CancellationToken ct = default

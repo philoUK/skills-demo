@@ -2,6 +2,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using AdminModule.Admin.Ping;
 using AdminModule.Administrator.Data;
+using AdminModule.Administrator.Domain;
 using AdminModule.Administrator.Endpoints;
 using AdminModule.Contexts;
 using AdminModule.Email;
@@ -86,7 +87,7 @@ public static class AdminModuleExtensions
                         );
                         return Task.CompletedTask;
                     },
-                    OnTokenValidated = ctx =>
+                    OnTokenValidated = async ctx =>
                     {
                         if (ctx.Principal?.Identity is ClaimsIdentity identity)
                         {
@@ -103,8 +104,27 @@ public static class AdminModuleExtensions
                                         identity.AddClaim(new Claim(ClaimTypes.Role, roleName));
                                 }
                             }
+
+                            var email =
+                                ctx.Principal.FindFirst("email")?.Value
+                                ?? ctx.Principal.FindFirst("preferred_username")?.Value;
+
+                            if (email is null)
+                            {
+                                ctx.Fail("No email claim found in token.");
+                                return;
+                            }
+
+                            var repository =
+                                ctx.HttpContext.RequestServices.GetRequiredService<IAdministratorRepository>();
+                            var administrator = await repository.GetByEmailAsync(
+                                email,
+                                ctx.HttpContext.RequestAborted
+                            );
+
+                            if (administrator is null || !administrator.IsActive())
+                                ctx.Fail("Administrator is not active.");
                         }
-                        return Task.CompletedTask;
                     },
                 };
             });

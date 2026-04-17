@@ -42,6 +42,18 @@ internal class AdministratorRepository : IAdministratorRepository
         return entity?.ToDomain();
     }
 
+    public async Task<DomainAdministrator?> GetByKeycloakUserIdAsync(
+        string keycloakUserId,
+        CancellationToken ct = default
+    )
+    {
+        var entity = await _db.Administrators.FirstOrDefaultAsync(
+            a => a.KeycloakUserId == keycloakUserId,
+            ct
+        );
+        return entity?.ToDomain();
+    }
+
     public async Task<DomainAdministrator?> GetByInvitationTokenAsync(
         string token,
         CancellationToken ct = default

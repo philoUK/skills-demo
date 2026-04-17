@@ -9,6 +9,7 @@ import { RegisterCompletePage } from './pages/RegisterCompletePage'
 import { RegisterExpiredPage } from './pages/RegisterExpiredPage'
 import { RegisterAlreadyUsedPage } from './pages/RegisterAlreadyUsedPage'
 import { RegisterNotFoundPage } from './pages/RegisterNotFoundPage'
+import { InactivePage } from './pages/InactivePage'
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/register/expired" element={<RegisterExpiredPage />} />
           <Route path="/register/already-used" element={<RegisterAlreadyUsedPage />} />
           <Route path="/register/not-found" element={<RegisterNotFoundPage />} />
+          <Route path="/inactive" element={<InactivePage />} />
           <Route
             path="/"
             element={
