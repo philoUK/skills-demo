@@ -1,3 +1,5 @@
+using System.Data.Common;
+
 namespace AdminModule.Administrator.Domain;
 
 internal static class AdministratorOperations
@@ -46,7 +48,7 @@ internal static class AdministratorOperations
 
     internal static Result<Administrator> ResendInvitation(this Administrator administrator)
     {
-        if (administrator.Status is not (AdministratorPending or AdministratorPendingExpired))
+        if (!administrator.HasBeenInvited())
             return new Error<Administrator>(["Administrator invitation cannot be resent."]);
 
         return new Ok<Administrator>(
@@ -59,4 +61,7 @@ internal static class AdministratorOperations
             }
         );
     }
+
+    internal static bool HasBeenInvited(this Administrator administrator) =>
+        administrator.Status is not (AdministratorActive or AdministratorInactive);
 }

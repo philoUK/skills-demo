@@ -20,7 +20,7 @@ internal static class CancelInvitation
         Activity.Current?.SetTag("administrator.id", id);
         Activity.Current?.SetTag("administrator.email", administrator.Email);
 
-        if (administrator.Status is not (AdministratorPending or AdministratorPendingExpired))
+        if (!administrator.HasBeenInvited())
         {
             Activity.Current?.SetTag(
                 "administrator.cancel_invitation.error",
