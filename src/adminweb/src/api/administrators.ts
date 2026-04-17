@@ -1,3 +1,7 @@
+import { InactiveAccountError } from './errors'
+
+export { InactiveAccountError }
+
 const apiUrl = import.meta.env.VITE_API_URL as string
 
 export interface Administrator {
@@ -25,9 +29,8 @@ export async function listAdministrators(
     headers: { Authorization: `Bearer ${token}` },
   })
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch administrators: ${response.status}`)
-  }
+  if (response.status === 401) throw new InactiveAccountError()
+  if (!response.ok) throw new Error(`Failed to fetch administrators: ${response.status}`)
 
   return response.json()
 }
@@ -38,6 +41,7 @@ export async function deactivateAdministrator(token: string, id: string): Promis
     headers: { Authorization: `Bearer ${token}` },
   })
 
+  if (response.status === 401) throw new InactiveAccountError()
   if (!response.ok) {
     const body = await response.text().catch(() => '')
     throw new Error(body || `Failed to deactivate administrator: ${response.status}`)
@@ -50,6 +54,7 @@ export async function reactivateAdministrator(token: string, id: string): Promis
     headers: { Authorization: `Bearer ${token}` },
   })
 
+  if (response.status === 401) throw new InactiveAccountError()
   if (!response.ok) {
     const body = await response.text().catch(() => '')
     throw new Error(body || `Failed to reactivate administrator: ${response.status}`)
@@ -75,6 +80,7 @@ export async function inviteAdministrator(
     body: JSON.stringify(request),
   })
 
+  if (response.status === 401) throw new InactiveAccountError()
   if (!response.ok) {
     const body = await response.text().catch(() => '')
     throw new Error(body || `Failed to invite administrator: ${response.status}`)
@@ -87,6 +93,7 @@ export async function resendInvitation(token: string, id: string): Promise<void>
     headers: { Authorization: `Bearer ${token}` },
   })
 
+  if (response.status === 401) throw new InactiveAccountError()
   if (!response.ok) {
     const body = await response.text().catch(() => '')
     throw new Error(body || `Failed to resend invitation: ${response.status}`)
@@ -99,6 +106,7 @@ export async function cancelInvitation(token: string, id: string): Promise<void>
     headers: { Authorization: `Bearer ${token}` },
   })
 
+  if (response.status === 401) throw new InactiveAccountError()
   if (!response.ok) {
     const body = await response.text().catch(() => '')
     throw new Error(body || `Failed to cancel invitation: ${response.status}`)

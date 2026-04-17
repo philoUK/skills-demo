@@ -1,6 +1,6 @@
 import { useReducer, useEffect, useState } from 'react'
 import { useAuth } from 'react-oidc-context'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   listAdministrators,
   deactivateAdministrator,
@@ -10,6 +10,7 @@ import {
   cancelInvitation,
   type Administrator,
 } from '../api/administrators'
+import { InactiveAccountError } from '../api/errors'
 
 type State =
   | { status: 'idle' }
@@ -67,11 +68,12 @@ interface InviteModalProps {
 }
 
 function InviteModal({ onClose, onSuccess, token }: InviteModalProps) {
+  const navigate = useNavigate()
   const [form, setForm] = useState<InviteFormState>({ firstName: '', lastName: '', email: '' })
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setSubmitting(true)
     setError(null)
@@ -83,7 +85,11 @@ function InviteModal({ onClose, onSuccess, token }: InviteModalProps) {
       })
       onSuccess()
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to send invitation.')
+      if (e instanceof InactiveAccountError) {
+        navigate('/inactive', { replace: true })
+      } else {
+        setError(e instanceof Error ? e.message : 'Failed to send invitation.')
+      }
     } finally {
       setSubmitting(false)
     }
@@ -158,6 +164,7 @@ function InviteModal({ onClose, onSuccess, token }: InviteModalProps) {
 
 export function AdministratorsPage() {
   const auth = useAuth()
+  const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [state, dispatch] = useReducer(reduce, { status: 'idle' })
   const [actionError, setActionError] = useState<string | null>(null)
@@ -166,6 +173,10 @@ export function AdministratorsPage() {
 
   const currentUserSub = auth.user?.profile?.sub as string | undefined
 
+  function handleInactive() {
+    navigate('/inactive', { replace: true })
+  }
+
   useEffect(() => {
     const token = auth.user?.access_token
     if (!token) return
@@ -173,7 +184,10 @@ export function AdministratorsPage() {
     dispatch({ type: 'fetch' })
     listAdministrators(token, search)
       .then((r) => dispatch({ type: 'success', administrators: r.administrators }))
-      .catch((e: Error) => dispatch({ type: 'error', message: e.message }))
+      .catch((e: unknown) => {
+        if (e instanceof InactiveAccountError) handleInactive()
+        else dispatch({ type: 'error', message: e instanceof Error ? e.message : 'Failed to fetch administrators.' })
+      })
   }, [search, auth.user?.access_token])
 
   function reload() {
@@ -182,7 +196,10 @@ export function AdministratorsPage() {
     dispatch({ type: 'fetch' })
     listAdministrators(token, search)
       .then((r) => dispatch({ type: 'success', administrators: r.administrators }))
-      .catch((e: Error) => dispatch({ type: 'error', message: e.message }))
+      .catch((e: unknown) => {
+        if (e instanceof InactiveAccountError) handleInactive()
+        else dispatch({ type: 'error', message: e instanceof Error ? e.message : 'Failed to fetch administrators.' })
+      })
   }
 
   async function handleDeactivate(id: string) {
@@ -194,7 +211,8 @@ export function AdministratorsPage() {
       await deactivateAdministrator(token, id)
       reload()
     } catch (e: unknown) {
-      setActionError(e instanceof Error ? e.message : 'Failed to deactivate administrator.')
+      if (e instanceof InactiveAccountError) handleInactive()
+      else setActionError(e instanceof Error ? e.message : 'Failed to deactivate administrator.')
     } finally {
       setPendingAction(null)
     }
@@ -209,7 +227,8 @@ export function AdministratorsPage() {
       await reactivateAdministrator(token, id)
       reload()
     } catch (e: unknown) {
-      setActionError(e instanceof Error ? e.message : 'Failed to reactivate administrator.')
+      if (e instanceof InactiveAccountError) handleInactive()
+      else setActionError(e instanceof Error ? e.message : 'Failed to reactivate administrator.')
     } finally {
       setPendingAction(null)
     }
@@ -224,7 +243,8 @@ export function AdministratorsPage() {
       await resendInvitation(token, id)
       reload()
     } catch (e: unknown) {
-      setActionError(e instanceof Error ? e.message : 'Failed to resend invitation.')
+      if (e instanceof InactiveAccountError) handleInactive()
+      else setActionError(e instanceof Error ? e.message : 'Failed to resend invitation.')
     } finally {
       setPendingAction(null)
     }
@@ -239,7 +259,8 @@ export function AdministratorsPage() {
       await cancelInvitation(token, id)
       reload()
     } catch (e: unknown) {
-      setActionError(e instanceof Error ? e.message : 'Failed to cancel invitation.')
+      if (e instanceof InactiveAccountError) handleInactive()
+      else setActionError(e instanceof Error ? e.message : 'Failed to cancel invitation.')
     } finally {
       setPendingAction(null)
     }
