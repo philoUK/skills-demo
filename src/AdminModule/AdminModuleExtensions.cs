@@ -94,12 +94,6 @@ public static class AdminModuleExtensions
                             var logger = ctx.HttpContext.RequestServices
                                 .GetRequiredService<ILoggerFactory>()
                                 .CreateLogger("AdminModule.Auth");
-                            if (logger.IsEnabled(LogLevel.Debug))
-                                logger.LogDebug(
-                                    "Token claims: {Claims}",
-                                    string.Join(", ", ctx.Principal.Claims.Select(c => $"{c.Type}={c.Value}"))
-                                );
-
                             var realmAccess = ctx.Principal.FindFirst("realm_access");
                             if (realmAccess is not null)
                             {
@@ -120,6 +114,10 @@ public static class AdminModuleExtensions
 
                             if (sub is null)
                             {
+                                logger.LogWarning(
+                                    "No user identifier claim found. Available claim types: {ClaimTypes}",
+                                    string.Join(", ", ctx.Principal.Claims.Select(c => c.Type))
+                                );
                                 ctx.Fail("No user identifier claim found in token.");
                                 return;
                             }
