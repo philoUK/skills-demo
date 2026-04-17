@@ -80,3 +80,27 @@ export async function inviteAdministrator(
     throw new Error(body || `Failed to invite administrator: ${response.status}`)
   }
 }
+
+export async function resendInvitation(token: string, id: string): Promise<void> {
+  const response = await fetch(`${apiUrl}/admin/administrators/${id}/resend-invitation`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '')
+    throw new Error(body || `Failed to resend invitation: ${response.status}`)
+  }
+}
+
+export async function cancelInvitation(token: string, id: string): Promise<void> {
+  const response = await fetch(`${apiUrl}/admin/administrators/${id}/invitation`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '')
+    throw new Error(body || `Failed to cancel invitation: ${response.status}`)
+  }
+}

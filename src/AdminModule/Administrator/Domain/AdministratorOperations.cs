@@ -1,3 +1,5 @@
+using System.Data.Common;
+
 namespace AdminModule.Administrator.Domain;
 
 internal static class AdministratorOperations
@@ -43,4 +45,23 @@ internal static class AdministratorOperations
             Status = AdministratorStatusFactory.PendingExpired(),
             UpdatedAt = DateTime.UtcNow,
         };
+
+    internal static Result<Administrator> ResendInvitation(this Administrator administrator)
+    {
+        if (!administrator.HasBeenInvited())
+            return new Error<Administrator>(["Administrator invitation cannot be resent."]);
+
+        return new Ok<Administrator>(
+            administrator with
+            {
+                Status = AdministratorStatusFactory.Pending(),
+                InvitationToken = InvitationToken.Generate(),
+                InvitationExpiresAt = DateTime.UtcNow.AddHours(24),
+                UpdatedAt = DateTime.UtcNow,
+            }
+        );
+    }
+
+    internal static bool HasBeenInvited(this Administrator administrator) =>
+        administrator.Status is not (AdministratorActive or AdministratorInactive);
 }

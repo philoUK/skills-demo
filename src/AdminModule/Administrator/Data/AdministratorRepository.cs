@@ -68,10 +68,20 @@ internal class AdministratorRepository : IAdministratorRepository
 
         entity.Status = AdministratorStatusFactory.ToStorageString(administrator.Status);
         entity.KeycloakUserId = administrator.KeycloakUserId;
-        entity.InvitationToken = administrator.InvitationToken;
+        entity.InvitationToken = administrator.InvitationToken?.Value;
         entity.InvitationExpiresAt = administrator.InvitationExpiresAt;
         entity.UpdatedAt = administrator.UpdatedAt;
 
+        await _db.SaveChangesAsync(ct);
+    }
+
+    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
+    {
+        var entity = await _db.Administrators.FindAsync([id], ct);
+        if (entity is null)
+            return;
+
+        _db.Administrators.Remove(entity);
         await _db.SaveChangesAsync(ct);
     }
 }

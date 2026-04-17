@@ -118,6 +118,12 @@ public static class AdminModuleExtensions
         app.MapPost("/admin/administrators/invite", Invite.Handle)
             .RequireAuthorization(policy => policy.RequireRole("administrator"));
 
+        app.MapPost("/admin/administrators/{id}/resend-invitation", ResendInvitation.Handle)
+            .RequireAuthorization(policy => policy.RequireRole("administrator"));
+
+        app.MapDelete("/admin/administrators/{id}/invitation", CancelInvitation.Handle)
+            .RequireAuthorization(policy => policy.RequireRole("administrator"));
+
         app.MapGet("/admin/register/{token}", Register.Handle);
 
         return app;

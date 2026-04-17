@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-
 namespace AdminModule.Administrator.Domain;
 
 internal static class AdministratorFactory
@@ -12,7 +10,7 @@ internal static class AdministratorFactory
             lastName,
             AdministratorStatusFactory.Pending(),
             null,
-            CreateToken(),
+            InvitationToken.Generate(),
             DateTime.UtcNow.AddHours(24),
             DateTime.UtcNow,
             DateTime.UtcNow
@@ -25,7 +23,7 @@ internal static class AdministratorFactory
         string lastName,
         AdministratorStatus status,
         string? keycloakUserId,
-        string? invitationToken,
+        InvitationToken? invitationToken,
         DateTime? invitationExpiresAt,
         DateTime createdAt,
         DateTime updatedAt
@@ -42,10 +40,4 @@ internal static class AdministratorFactory
             createdAt,
             updatedAt
         );
-
-    private static string CreateToken()
-    {
-        var tokenBytes = RandomNumberGenerator.GetBytes(32);
-        return Convert.ToBase64String(tokenBytes).Replace('+', '-').Replace('/', '_').TrimEnd('=');
-    }
 }

@@ -7,7 +7,7 @@ internal record Administrator(
     string LastName,
     AdministratorStatus Status,
     string? KeycloakUserId,
-    string? InvitationToken,
+    InvitationToken? InvitationToken,
     DateTime? InvitationExpiresAt,
     DateTime CreatedAt,
     DateTime UpdatedAt

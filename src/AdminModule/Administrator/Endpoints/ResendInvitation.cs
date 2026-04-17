@@ -1,47 +1,33 @@
 using System.Diagnostics;
-using System.Security.Claims;
 using AdminModule.Administrator.Data;
 using AdminModule.Administrator.Domain;
+using AdminModule.Email;
 using Microsoft.AspNetCore.Http;
 
 namespace AdminModule.Administrator.Endpoints;
 
-internal static class Deactivate
+internal static class ResendInvitation
 {
     internal static async Task<IResult> Handle(
         Guid id,
-        ClaimsPrincipal user,
         IAdministratorRepository repository,
+        IEmailService emailService,
         CancellationToken ct
     )
     {
         var administrator = await repository.GetByIdAsync(id, ct);
-
         if (administrator is null)
             return TypedResults.NotFound();
 
         Activity.Current?.SetTag("administrator.id", id);
-        Activity.Current?.SetTag(
-            "administrator.status",
-            AdministratorStatusFactory.ToStorageString(administrator.Status)
-        );
+        Activity.Current?.SetTag("administrator.email", administrator.Email);
 
-        var currentUserKeycloakId = user.FindFirst("sub")?.Value;
-        if (
-            currentUserKeycloakId is not null
-            && administrator.KeycloakUserId == currentUserKeycloakId
-        )
-        {
-            Activity.Current?.SetTag("administrator.self_deactivation_attempted", true);
-            return TypedResults.Conflict("Cannot deactivate your own account.");
-        }
-
-        var result = administrator.Deactivate();
+        var result = administrator.ResendInvitation();
 
         if (result is Error<Domain.Administrator> error)
         {
             Activity.Current?.SetTag(
-                "administrator.deactivate.error",
+                "administrator.resend_invitation.error",
                 string.Join(", ", error.Errors)
             );
             return TypedResults.Conflict(string.Join(", ", error.Errors));
@@ -50,7 +36,12 @@ internal static class Deactivate
         var updated = ((Ok<Domain.Administrator>)result).Value;
         await repository.UpdateAsync(updated, ct);
 
-        Activity.Current?.SetTag("administrator.deactivated", true);
+        await emailService.SendInvitationAsync(
+            updated.Email,
+            updated.FirstName,
+            updated.InvitationToken!.Value,
+            ct
+        );
 
         return TypedResults.NoContent();
     }
