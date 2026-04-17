@@ -91,9 +91,6 @@ public static class AdminModuleExtensions
                     {
                         if (ctx.Principal?.Identity is ClaimsIdentity identity)
                         {
-                            var logger = ctx.HttpContext.RequestServices
-                                .GetRequiredService<ILoggerFactory>()
-                                .CreateLogger("AdminModule.Auth");
                             var realmAccess = ctx.Principal.FindFirst("realm_access");
                             if (realmAccess is not null)
                             {
@@ -108,24 +105,18 @@ public static class AdminModuleExtensions
                                 }
                             }
 
-                            var sub =
-                                ctx.Principal.FindFirst("sub")?.Value
-                                ?? ctx.Principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                            var username = ctx.Principal.FindFirst("preferred_username")?.Value;
 
-                            if (sub is null)
+                            if (username is null)
                             {
-                                logger.LogWarning(
-                                    "No user identifier claim found. Available claim types: {ClaimTypes}",
-                                    string.Join(", ", ctx.Principal.Claims.Select(c => c.Type))
-                                );
-                                ctx.Fail("No user identifier claim found in token.");
+                                ctx.Fail("No preferred_username claim found in token.");
                                 return;
                             }
 
                             var repository =
                                 ctx.HttpContext.RequestServices.GetRequiredService<IAdministratorRepository>();
-                            var administrator = await repository.GetByKeycloakUserIdAsync(
-                                sub,
+                            var administrator = await repository.GetByEmailAsync(
+                                username,
                                 ctx.HttpContext.RequestAborted
                             );
 
