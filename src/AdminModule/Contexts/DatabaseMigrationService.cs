@@ -38,16 +38,18 @@ internal class DatabaseMigrationService : IHostedService
         _logger.LogInformation("Seeding bootstrap administrator");
 
         var now = DateTime.UtcNow;
-        db.Administrators.Add(new AdministratorEntity
-        {
-            Id = Guid.NewGuid(),
-            Email = "pbennett@neworbit.co.uk",
-            FirstName = "Phil",
-            LastName = "Bennett",
-            Status = "active",
-            CreatedAt = now,
-            UpdatedAt = now,
-        });
+        db.Administrators.Add(
+            new AdministratorEntity
+            {
+                Id = Guid.NewGuid(),
+                Email = "pbennett@neworbit.co.uk",
+                FirstName = "Phil",
+                LastName = "Bennett",
+                Status = "active",
+                CreatedAt = now,
+                UpdatedAt = now,
+            }
+        );
 
         await db.SaveChangesAsync(ct);
     }

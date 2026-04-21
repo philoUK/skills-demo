@@ -9,18 +9,18 @@ namespace AdminModule.Administrator.Endpoints;
 internal static class Deactivate
 {
     internal static async Task<IResult> Handle(
-        Guid id,
+        Guid administratorId,
         ClaimsPrincipal user,
         IAdministratorRepository repository,
         CancellationToken ct
     )
     {
-        var administrator = await repository.GetByIdAsync(id, ct);
+        var administrator = await repository.GetByIdAsync(administratorId, ct);
 
         if (administrator is null)
             return TypedResults.NotFound();
 
-        Activity.Current?.SetTag("administrator.id", id);
+        Activity.Current?.SetTag("administrator.id", administratorId);
         Activity.Current?.SetTag(
             "administrator.status",
             AdministratorStatusFactory.ToStorageString(administrator.Status)
@@ -40,7 +40,10 @@ internal static class Deactivate
 
         if (result is Error<Domain.Administrator> error)
         {
-            Activity.Current?.SetTag("administrator.deactivate.error", string.Join(", ", error.Errors));
+            Activity.Current?.SetTag(
+                "administrator.deactivate.error",
+                string.Join(", ", error.Errors)
+            );
             return TypedResults.Conflict(string.Join(", ", error.Errors));
         }
 

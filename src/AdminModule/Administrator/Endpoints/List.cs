@@ -3,7 +3,6 @@ using AdminModule.Administrator.Data;
 using AdminModule.Administrator.Domain;
 using AdminModule.Contracts.Administrator;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using HttpOk = Microsoft.AspNetCore.Http.HttpResults.Ok<AdminModule.Contracts.Administrator.ListAdministratorsResponse>;
 
