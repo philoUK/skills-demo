@@ -94,3 +94,7 @@ We never directly store aggregate roots in the database. See [persistence](./per
 ## Sharing
 
 This is a modular monolith and we don't expect many types to be shared between modules, if any. Even if we have 2 modules with an identical value type, we won't share them. The only exception would be for the Result type, which when required can go into a 'shared' class library that can be used by any module.
+
+## Primitive obsession
+
+Avoid simple primitive types if they can be better expressed in a type. When multiple fields are used together, or used to compute a value, they are natural candidates to be combined into a type.

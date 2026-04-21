@@ -2,6 +2,20 @@ namespace AdminModule.Administrator.Domain;
 
 internal static class AdministratorFactory
 {
+    internal static Administrator Invite(string email, string firstName, string lastName) =>
+        new(
+            Guid.NewGuid(),
+            email,
+            firstName,
+            lastName,
+            AdministratorStatusFactory.Pending(),
+            null,
+            InvitationToken.Generate(),
+            DateTime.UtcNow.AddHours(24),
+            DateTime.UtcNow,
+            DateTime.UtcNow
+        );
+
     internal static Administrator Load(
         Guid id,
         string email,
@@ -9,7 +23,7 @@ internal static class AdministratorFactory
         string lastName,
         AdministratorStatus status,
         string? keycloakUserId,
-        string? invitationToken,
+        InvitationToken? invitationToken,
         DateTime? invitationExpiresAt,
         DateTime createdAt,
         DateTime updatedAt

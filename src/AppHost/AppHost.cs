@@ -6,20 +6,28 @@ var keycloakHttp = keycloak.GetEndpoint("http");
 var postgres = builder.AddPostgres("postgres");
 var adminDb = postgres.AddDatabase("admindb");
 
+var mailpit = builder.AddMailPit("mailpit");
+
 var api = builder
     .AddProject<Projects.Api>("api")
     .WaitFor(keycloak)
     .WaitFor(postgres)
+    .WaitFor(mailpit)
     .WithReference(adminDb)
+    .WithEnvironment("Smtp__Host", mailpit.GetEndpoint("smtp").Property(EndpointProperty.Host))
+    .WithEnvironment("Smtp__Port", mailpit.GetEndpoint("smtp").Property(EndpointProperty.Port))
     .WithEnvironment(
         "Keycloak__Authority",
         ReferenceExpression.Create($"{keycloakHttp}/realms/fizz")
     )
-    .WithEnvironment("Keycloak__Audience", "adminweb");
+    .WithEnvironment("Keycloak__Audience", "adminweb")
+    .WithEnvironment("Keycloak__AdminClientId", "fizz-api")
+    .WithEnvironment("Keycloak__AdminClientSecret", "fizz-api-secret");
 
 var apiHttp = api.GetEndpoint("http");
+api.WithEnvironment("Api__BaseUrl", ReferenceExpression.Create($"{apiHttp}"));
 
-builder
+var adminweb = builder
     .AddNpmApp("adminweb", "../adminweb", "dev")
     .WithHttpEndpoint(env: "PORT")
     .WithExternalHttpEndpoints()
@@ -28,6 +36,9 @@ builder
     .WithEnvironment("VITE_KEYCLOAK_URL", ReferenceExpression.Create($"{keycloakHttp}"))
     .WithEnvironment("VITE_KEYCLOAK_REALM", "fizz")
     .WithEnvironment("VITE_API_URL", ReferenceExpression.Create($"{apiHttp}"));
+
+var adminwebHttp = adminweb.GetEndpoint("http");
+api.WithEnvironment("Frontend__AdminUrl", ReferenceExpression.Create($"{adminwebHttp}"));
 
 builder
     .AddNpmApp("memberweb", "../memberweb", "dev")

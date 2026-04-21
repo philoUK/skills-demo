@@ -50,7 +50,10 @@ public class AdministratorsReactivateTests : IClassFixture<WebAppFactory>, IAsyn
     [Fact]
     public async Task Reactivating_a_nonexistent_administrator_returns_404()
     {
-        var response = await _client.PostAsync($"/admin/administrators/{Guid.NewGuid()}/reactivate", null);
+        var response = await _client.PostAsync(
+            $"/admin/administrators/{Guid.NewGuid()}/reactivate",
+            null
+        );
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }

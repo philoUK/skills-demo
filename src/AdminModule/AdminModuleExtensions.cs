@@ -2,8 +2,11 @@ using System.Security.Claims;
 using System.Text.Json;
 using AdminModule.Admin.Ping;
 using AdminModule.Administrator.Data;
+using AdminModule.Administrator.Domain;
 using AdminModule.Administrator.Endpoints;
 using AdminModule.Contexts;
+using AdminModule.Email;
+using AdminModule.Keycloak;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
@@ -19,11 +22,20 @@ public static class AdminModuleExtensions
 {
     public static IHostApplicationBuilder AddAdminModule(this IHostApplicationBuilder builder)
     {
+        SetUpOptions(builder);
         SetUpAuthentication(builder);
         SetUpCors(builder);
         SetUpPersistence(builder);
 
         return builder;
+    }
+
+    private static void SetUpOptions(IHostApplicationBuilder builder)
+    {
+        builder.Services.Configure<KeycloakOptions>(builder.Configuration.GetSection("Keycloak"));
+        builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
+        builder.Services.Configure<ApiOptions>(builder.Configuration.GetSection("Api"));
+        builder.Services.Configure<FrontendOptions>(builder.Configuration.GetSection("Frontend"));
     }
 
     private static void SetUpCors(IHostApplicationBuilder builder)
@@ -45,17 +57,21 @@ public static class AdminModuleExtensions
         );
 
         builder.Services.AddScoped<IAdministratorRepository, AdministratorRepository>();
+        builder.Services.AddScoped<IEmailService, SmtpEmailService>();
         builder.Services.AddHostedService<DatabaseMigrationService>();
+        builder.Services.AddHttpClient<IKeycloakAdminClient, KeycloakAdminClient>();
     }
 
     private static void SetUpAuthentication(IHostApplicationBuilder builder)
     {
+        var keycloak = builder.Configuration.GetSection("Keycloak").Get<KeycloakOptions>();
+
         builder
             .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
-                options.Authority = builder.Configuration["Keycloak:Authority"];
-                options.Audience = builder.Configuration["Keycloak:Audience"];
+                options.Authority = keycloak?.Authority;
+                options.Audience = keycloak?.Audience;
                 options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
                 options.MapInboundClaims = false;
                 options.Events = new JwtBearerEvents
@@ -71,7 +87,7 @@ public static class AdminModuleExtensions
                         );
                         return Task.CompletedTask;
                     },
-                    OnTokenValidated = ctx =>
+                    OnTokenValidated = async ctx =>
                     {
                         if (ctx.Principal?.Identity is ClaimsIdentity identity)
                         {
@@ -88,8 +104,27 @@ public static class AdminModuleExtensions
                                         identity.AddClaim(new Claim(ClaimTypes.Role, roleName));
                                 }
                             }
+
+                            var email =
+                                ctx.Principal.FindFirst("email")?.Value
+                                ?? ctx.Principal.FindFirst("preferred_username")?.Value;
+
+                            if (email is null)
+                            {
+                                ctx.Fail("No email claim found in token.");
+                                return;
+                            }
+
+                            var repository =
+                                ctx.HttpContext.RequestServices.GetRequiredService<IAdministratorRepository>();
+                            var administrator = await repository.GetByEmailAsync(
+                                email,
+                                ctx.HttpContext.RequestAborted
+                            );
+
+                            if (administrator is null || !administrator.IsActive())
+                                ctx.Fail("Administrator is not active.");
                         }
-                        return Task.CompletedTask;
                     },
                 };
             });
@@ -110,6 +145,17 @@ public static class AdminModuleExtensions
 
         app.MapPost("/admin/administrators/{id}/reactivate", Reactivate.Handle)
             .RequireAuthorization(policy => policy.RequireRole("administrator"));
+
+        app.MapPost("/admin/administrators/invite", Invite.Handle)
+            .RequireAuthorization(policy => policy.RequireRole("administrator"));
+
+        app.MapPost("/admin/administrators/{id}/resend-invitation", ResendInvitation.Handle)
+            .RequireAuthorization(policy => policy.RequireRole("administrator"));
+
+        app.MapDelete("/admin/administrators/{id}/invitation", CancelInvitation.Handle)
+            .RequireAuthorization(policy => policy.RequireRole("administrator"));
+
+        app.MapGet("/admin/register/{token}", Register.Handle);
 
         return app;
     }

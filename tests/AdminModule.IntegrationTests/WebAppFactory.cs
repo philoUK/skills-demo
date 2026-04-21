@@ -1,8 +1,11 @@
 using AdminModule.Contexts;
+using AdminModule.Email;
+using AdminModule.Keycloak;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -18,6 +21,9 @@ public class WebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
         .WithUsername("postgres")
         .WithPassword("postgres")
         .Build();
+
+    internal FakeEmailService EmailService { get; } = new();
+    internal FakeKeycloakAdminClient KeycloakAdminClient { get; } = new();
 
     public async Task InitializeAsync()
     {
@@ -49,6 +55,14 @@ public class WebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
 
             services.AddHostedService<TestDatabaseSetupService>();
 
+            // Replace the real email service with the fake
+            services.RemoveAll<IEmailService>();
+            services.AddSingleton<IEmailService>(EmailService);
+
+            // Replace the real Keycloak admin client with the fake
+            services.RemoveAll<IKeycloakAdminClient>();
+            services.AddSingleton<IKeycloakAdminClient>(KeycloakAdminClient);
+
             // Override authentication to always grant administrator role
             services
                 .AddAuthentication(options =>
@@ -57,6 +71,14 @@ public class WebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
                     options.DefaultChallengeScheme = "Test";
                 })
                 .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", _ => { });
+        });
+
+        builder.ConfigureAppConfiguration((_, config) =>
+        {
+            config.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Frontend:AdminUrl"] = "http://localhost:5174",
+            });
         });
 
         builder.UseEnvironment("Test");
@@ -85,6 +107,25 @@ public class WebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
         var entity = await db.Administrators.FindAsync(id);
         Xunit.Assert.NotNull(entity);
         Xunit.Assert.Equal(expectedStatus, entity.Status);
+    }
+
+    internal async Task AssertAdministratorTokenClearedAsync(Guid id)
+    {
+        using var scope = Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AdminDbContext>();
+        var entity = await db.Administrators.FindAsync(id);
+        Xunit.Assert.NotNull(entity);
+        Xunit.Assert.Null(entity.InvitationToken);
+        Xunit.Assert.Null(entity.InvitationExpiresAt);
+    }
+
+    internal async Task AssertAdministratorKeycloakUserIdAsync(Guid id, string expectedKeycloakUserId)
+    {
+        using var scope = Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AdminDbContext>();
+        var entity = await db.Administrators.FindAsync(id);
+        Xunit.Assert.NotNull(entity);
+        Xunit.Assert.Equal(expectedKeycloakUserId, entity.KeycloakUserId);
     }
 }
 
